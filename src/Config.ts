@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import * as configPkg from "config";
-import { Logger } from "./logging/Logger";
 
 interface Config {
   env: string;
