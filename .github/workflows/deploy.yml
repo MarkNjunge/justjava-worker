@@ -1,0 +1,35 @@
+name: Test & Deploy
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "12.14.1"
+      - name: lint
+        env:
+          CI: true
+        run: |
+          yarn lint
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: unshallow # Prevents 'shallow update not allowed'
+        run: git fetch --unshallow origin
+      - name: pre-deploy actions
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H '${{ secrets.SERVER_ENDPOINT }}' >> ~/.ssh/known_hosts
+      - name: Deploy
+        run: git push dokku@${{ secrets.SERVER_ENDPOINT }}:${{ secrets.APP_NAME }} master
