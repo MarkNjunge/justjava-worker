@@ -1,0 +1,26 @@
+{
+  "env": "NODE_ENV",
+  "redis": {
+    "url": "REDIS_URL"
+  },
+  "api": {
+    "dev": {
+      "adminKey": "DEV_ADMIN_KEY",
+      "endpoint": "https://dev.justjava.store"
+    },
+    "prod": {
+      "adminKey": "PROD_ADMIN_KEY",
+      "endpoint": "https://api.justjava.store"
+    }
+  },
+  "queue": {
+    "delay": "QUEUE_DELAY"
+  },
+  "datadog": {
+    "enabled": "DATADOG_ENABLED",
+    "apiKey": "DATADOG_API_KEY",
+    "service": "worker.justjava",
+    "source": "justjava-worker",
+    "host": "worker.justjava.store"
+  }
+}

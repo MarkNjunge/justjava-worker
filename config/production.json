@@ -1,0 +1,5 @@
+{
+  "datadog": {
+    "enabled": true
+  }
+}

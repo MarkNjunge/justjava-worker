@@ -1,0 +1,29 @@
+{
+  "env": "development",
+  "redis": {
+    "url": "redis://:password@host:port/0"
+  },
+  "api": {
+    "dev": {
+      "adminKey": "dev_admin_key",
+      "endpoint": "https://dev.justjava.store"
+    },
+    "prod": {
+      "adminKey": "prod_admin_key",
+      "endpoint": "https://api.justjava.store"
+    }
+  },
+  "queue": {
+    "delay": 60000
+  },
+  "logging": {
+    "timestampFormat": "YYYY-MM-DD HH:mm:ss.SSS"
+  },
+  "datadog": {
+    "enabled": false,
+    "apiKey": "datadog_api_key",
+    "service": "worker.justjava",
+    "source": "justjava-worker",
+    "host": "worker.justjava.store"
+  }
+}
