@@ -27,24 +27,21 @@ export default class OrderQueue {
 
   private observeEvents() {
     this.orderQueue.on("global:stalled", jobId => {
-      this.logger.warn(`Job with id ${jobId} has stalled`);
+      this.logger.warn(`[${jobId}] STALLED`);
     });
 
     this.orderQueue.on("global:completed", jobId => {
-      this.logger.info(`Job with id ${jobId} has been completed`);
+      this.logger.debug(`[${jobId}] COMPLETED`);
     });
 
     this.orderQueue.on("global:failed", async jobId => {
       const job = await this.orderQueue.getJob(jobId);
-      this.logger.error(
-        `Job with id ${jobId} has failed: ${job.toJSON().failedReason}`,
-      );
+      this.logger.error(`[${jobId}] FAILED: ${job.toJSON().failedReason}`);
     });
   }
 
   private startProcessing() {
     this.orderQueue.process(async (job, done) => {
-      this.logger.debug(`Processing job ${job.id}`);
       const serviceName = job.data.serviceName;
       const orderId = job.data.orderId;
       const orderStatus = job.data.orderStatus;
@@ -62,9 +59,10 @@ export default class OrderQueue {
 
       try {
         if (orderStatus === OrderStatus.CONFIRMED) {
-          await this.startOrderSequence(serviceName, orderId);
+          await this.startOrderSequence(job.id, serviceName, orderId);
         } else {
           await this.proceedWithOrderSequence(
+            job.id,
             serviceName,
             orderId,
             orderStatus,
@@ -81,11 +79,17 @@ export default class OrderQueue {
     });
   }
 
-  private async startOrderSequence(serviceName: string, orderId: string) {
-    this.logger.debug(`Starting order sequence for order ${orderId}`);
+  private async startOrderSequence(
+    jobId: number | string,
+    serviceName: string,
+    orderId: string,
+  ) {
+    this.logger.debug(
+      `[${jobId}] Starting order sequence for order ${orderId}`,
+    );
 
     // Schedule order to be in progress after 30s
-    this.logger.debug("Scheduling order to be IN_PROGRESS");
+    this.logger.debug(`[${jobId}] Scheduling order to be IN_PROGRESS`);
     await this.orderQueue.add(
       {
         serviceName,
@@ -101,11 +105,12 @@ export default class OrderQueue {
   }
 
   private async proceedWithOrderSequence(
+    jobId: number | string,
     serviceName: string,
     orderId: string,
     orderStatus: OrderStatus,
   ) {
-    this.logger.debug(`Setting order ${orderId} to ${orderStatus}`);
+    this.logger.debug(`[${jobId}] Setting order ${orderId} to ${orderStatus}`);
 
     const apiConfig = getApiConfig(serviceName);
 
@@ -120,12 +125,14 @@ export default class OrderQueue {
     });
 
     if (orderStatus !== OrderStatus.IN_PROGRESS) {
-      this.logger.debug(`Ignoring ${orderStatus} status of order ${orderId}`);
+      this.logger.debug(
+        `[${jobId}] Ignoring ${orderStatus} status of order ${orderId}`,
+      );
       return;
     }
 
     // Schedule order to be completed
-    this.logger.debug("Scheduling order to be COMPLETED");
+    this.logger.debug(`[${jobId}] Scheduling order to be COMPLETED`);
     await this.orderQueue.add(
       {
         serviceName,
